@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "images-grabber"
+version = "0.1.0"
+description = ""
+authors = ["Alena Konovalova <konovalova.alena@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+mypy = "^0.931"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
