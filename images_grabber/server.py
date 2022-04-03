@@ -18,16 +18,16 @@ async def archive(
     input_dir = get_path_of_file(output_filename)
 
     # Launch zip util that archives files
-    proccess = await create_zip_util_process(input_dir)
-    if proccess.stdout is not None:
+    process = await create_zip_util_process(input_dir)
+    if process.stdout is not None:
         # Streaming response
         response = web.StreamResponse(
                 headers=get_headers_for_zip_file(output_filename),
             )
         await response.prepare(request)
 
-        while not proccess.stdout.at_eof():
-            file_content = await proccess.stdout.read(n=500 * 1000)
+        while not process.stdout.at_eof():
+            file_content = await process.stdout.read(n=500 * 1000)
             await response.write(file_content)
         return response
     raise web.HTTPError
