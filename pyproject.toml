@@ -13,6 +13,7 @@ aiofiles = "^0.8.0"
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
 mypy = "^0.931"
+types-aiofiles = "^0.8.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
