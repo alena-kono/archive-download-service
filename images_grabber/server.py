@@ -19,7 +19,6 @@ async def archive(
         )
     input_dir = get_path_of_file(output_filename)
     if not os.path.exists(input_dir):
-        # raise HTTPNotFound()
         return await handle_404(request)
 
     # Launch zip util that archives files
@@ -35,7 +34,7 @@ async def archive(
             file_content = await process.stdout.read(n=500 * 1000)
             await response.write(file_content)
         return response
-    raise web.HTTPError
+    return await handle_404(request)
 
 
 async def handle_index_page(request: web.Request) -> web.Response:
