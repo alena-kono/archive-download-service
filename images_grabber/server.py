@@ -1,3 +1,4 @@
+import os
 from typing import NoReturn, Union
 
 import aiofiles
@@ -16,6 +17,9 @@ async def archive(
             request_keyword="archive_hash",
         )
     input_dir = get_path_of_file(output_filename)
+    if not os.path.exists(input_dir):
+        # raise HTTPNotFound()
+        return await handle_404(request)
 
     # Launch zip util that archives files
     process = await create_zip_util_process(input_dir)
@@ -38,6 +42,13 @@ async def handle_index_page(request: web.Request) -> web.Response:
     async with aiofiles.open(index_file_path, mode="r") as index_file:
         index_contents = await index_file.read()
     return web.Response(text=index_contents, content_type="text/html")
+
+
+async def handle_404(request: web.Request) -> web.Response:
+    not_found_file_path = "./images_grabber/404.html"
+    async with aiofiles.open(not_found_file_path, mode="r") as page_404:
+        contents = await page_404.read()
+    return web.Response(status=404, text=contents, content_type="text/html")
 
 
 if __name__ == "__main__":
