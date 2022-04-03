@@ -1,9 +1,36 @@
-from aiohttp import web
+from typing import NoReturn, Union
+
 import aiofiles
+from aiohttp import web
+
+from images_grabber.utils import (get_filename_from_request,
+                                  get_headers_for_zip_file, get_path_of_file)
+from images_grabber.zip_launcher import create_zip_util_process
 
 
-async def archive(request: web.Request) -> Exception:
-    raise NotImplementedError
+async def archive(
+        request: web.Request
+) -> Union[web.StreamResponse, NoReturn]:
+    output_filename = get_filename_from_request(
+            request,
+            request_keyword="archive_hash",
+        )
+    input_dir = get_path_of_file(output_filename)
+
+    # Launch zip util that archives files
+    proccess = await create_zip_util_process(input_dir)
+    if proccess.stdout is not None:
+        # Streaming response
+        response = web.StreamResponse(
+                headers=get_headers_for_zip_file(output_filename),
+            )
+        await response.prepare(request)
+
+        while not proccess.stdout.at_eof():
+            file_content = await proccess.stdout.read(n=500 * 1000)
+            await response.write(file_content)
+        return response
+    raise web.HTTPError
 
 
 async def handle_index_page(request: web.Request) -> web.Response:
