@@ -2,7 +2,7 @@ import os
 from typing import NoReturn, Union
 
 from aiohttp import web, web_exceptions
-from archive_download_service.settings import ARCHIVE_URL_KEY_NAME
+from archive_download_service.settings import ARCHIVE_CHUNK_SIZE_KB, ARCHIVE_URL_KEY_NAME
 
 from archive_download_service.utils.file_paths import (
     get_filename_from_request, get_path_of_file)
@@ -34,7 +34,9 @@ async def archive(
         await response.prepare(request)
 
         while not process.stdout.at_eof():
-            file_content = await process.stdout.read(n=500 * 1000)
+            file_content = await process.stdout.read(
+                    n=ARCHIVE_CHUNK_SIZE_KB * 1000
+                )
             await response.write(file_content)
         return response
     return await handle_archive_not_found(request)
