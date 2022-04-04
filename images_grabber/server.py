@@ -38,14 +38,14 @@ async def archive(
 
 
 async def handle_index_page(request: web.Request) -> web.Response:
-    index_file_path = "./images_grabber/templates/index.html"
+    index_file_path = "./images_grabber/static/index.html"
     async with aiofiles.open(index_file_path, mode="r") as index_file:
         index_contents = await index_file.read()
     return web.Response(text=index_contents, content_type="text/html")
 
 
 async def handle_404(request: web.Request) -> web.Response:
-    not_found_file_path = "./images_grabber/templates/404.html"
+    not_found_file_path = "./images_grabber/static/404.html"
     async with aiofiles.open(not_found_file_path, mode="r") as page_404:
         contents = await page_404.read()
     return web.Response(status=404, text=contents, content_type="text/html")
