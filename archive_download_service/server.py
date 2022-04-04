@@ -1,6 +1,7 @@
 import os
 from typing import NoReturn, Union
 
+import loguru
 from aiohttp import web, web_exceptions
 from archive_download_service.settings import ARCHIVE_CHUNK_SIZE_KB, ARCHIVE_URL_KEY_NAME
 
@@ -37,6 +38,7 @@ async def archive(
             file_content = await process.stdout.read(
                     n=ARCHIVE_CHUNK_SIZE_KB * 1000
                 )
+            loguru.logger.info("Sending archive chunk")
             await response.write(file_content)
         return response
     return await handle_archive_not_found(request)

@@ -9,6 +9,7 @@ license = "MIT"
 python = "^3.9"
 aiohttp = "^3.8.1"
 aiofiles = "^0.8.0"
+loguru = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
