@@ -30,7 +30,7 @@ jobs:
         run: poetry install
 
       - name: Run flake8
-        run: poetry run flake8 images_grabber/
+        run: poetry run flake8 archive_download_service/
 
       - name: Run mypy
-        run: poetry run mypy images_grabber/ --strict
+        run: poetry run mypy archive_download_service/ --strict
