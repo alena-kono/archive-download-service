@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "images-grabber"
+name = "archive-download-service"
 version = "0.1.0"
 description = ""
 authors = ["Alena Konovalova <konovalova.alena@gmail.com>"]
