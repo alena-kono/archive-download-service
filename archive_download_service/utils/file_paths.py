@@ -8,7 +8,7 @@ DEBUG = True
 def get_path_of_file(filename: str) -> str:
     dir_path = ""
     if DEBUG:
-        dir_path = "images_grabber/test_photos"
+        dir_path = "archive_download_service/test_photos"
     return os.path.join(
             os.getcwd(),
             dir_path,

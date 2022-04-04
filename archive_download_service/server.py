@@ -3,11 +3,13 @@ from typing import NoReturn, Union
 
 from aiohttp import web, web_exceptions
 
-from images_grabber.utils.file_paths import (get_filename_from_request,
-                                             get_path_of_file)
-from images_grabber.utils.request_headers import get_headers_for_zip_file
-from images_grabber.utils.static import read_static_file
-from images_grabber.utils.zip_launcher import create_zip_util_process
+from archive_download_service.utils.file_paths import (
+    get_filename_from_request, get_path_of_file)
+from archive_download_service.utils.request_headers import \
+    get_headers_for_zip_file
+from archive_download_service.utils.static import read_static_file
+from archive_download_service.utils.zip_launcher import \
+    create_zip_util_process
 
 
 async def archive(
@@ -40,7 +42,7 @@ async def archive(
 async def handle_index_page(
         request: web.Request
 ) -> Union[web.Response, NoReturn]:
-    index_file_path = "./images_grabber/static/index.html"
+    index_file_path = "./archive_download_service/static/index.html"
     index_content = await read_static_file(index_file_path)
     if index_content:
         return web.Response(
@@ -53,7 +55,7 @@ async def handle_index_page(
 async def handle_archive_not_found(
         request: web.Request
 ) -> Union[web.Response, NoReturn]:
-    not_found_file_path = "./images_grabber/static/404.html"
+    not_found_file_path = "./archive_download_service/static/404.html"
     page_404_content = await read_static_file(not_found_file_path)
     if page_404_content:
         return web.Response(
