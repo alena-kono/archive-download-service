@@ -1,8 +1,7 @@
 import os
 from typing import NoReturn, Union
 
-from aiohttp import web
-from aiohttp.web_exceptions import HTTPNotFound
+from aiohttp import web, web_exceptions
 
 from images_grabber.utils.file_paths import (get_filename_from_request,
                                              get_path_of_file)
@@ -38,7 +37,9 @@ async def archive(
     return await handle_archive_not_found(request)
 
 
-async def handle_index_page(request: web.Request) -> web.Response:
+async def handle_index_page(
+        request: web.Request
+) -> Union[web.Response, NoReturn]:
     index_file_path = "./images_grabber/static/index.html"
     index_content = await read_static_file(index_file_path)
     if index_content:
@@ -46,10 +47,12 @@ async def handle_index_page(request: web.Request) -> web.Response:
                 text=index_content,
                 content_type="text/html",
             )
-    raise HTTPNotFound()
+    raise web_exceptions.HTTPNotFound()
 
 
-async def handle_archive_not_found(request: web.Request) -> web.Response:
+async def handle_archive_not_found(
+        request: web.Request
+) -> Union[web.Response, NoReturn]:
     not_found_file_path = "./images_grabber/static/404.html"
     page_404_content = await read_static_file(not_found_file_path)
     if page_404_content:
@@ -58,7 +61,7 @@ async def handle_archive_not_found(request: web.Request) -> web.Response:
                 text=page_404_content,
                 content_type="text/html",
             )
-    raise HTTPNotFound()
+    raise web_exceptions.HTTPNotFound()
 
 
 if __name__ == "__main__":
