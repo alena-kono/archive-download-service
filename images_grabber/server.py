@@ -1,7 +1,6 @@
 import os
 from typing import NoReturn, Union
 
-import aiofiles
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPNotFound
 
@@ -21,7 +20,7 @@ async def archive(
         )
     input_dir = get_path_of_file(output_filename)
     if not os.path.exists(input_dir):
-        return await handle_404(request)
+        return await handle_archive_not_found(request)
 
     # Launch zip util that archives files
     process = await create_zip_util_process(input_dir)
@@ -36,7 +35,7 @@ async def archive(
             file_content = await process.stdout.read(n=500 * 1000)
             await response.write(file_content)
         return response
-    return await handle_404(request)
+    return await handle_archive_not_found(request)
 
 
 async def handle_index_page(request: web.Request) -> web.Response:
@@ -50,7 +49,7 @@ async def handle_index_page(request: web.Request) -> web.Response:
     raise HTTPNotFound()
 
 
-async def handle_404(request: web.Request) -> web.Response:
+async def handle_archive_not_found(request: web.Request) -> web.Response:
     not_found_file_path = "./images_grabber/static/404.html"
     page_404_content = await read_static_file(not_found_file_path)
     if page_404_content:
