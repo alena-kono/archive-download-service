@@ -2,18 +2,15 @@ import os
 
 from aiohttp import web
 
-DEBUG = True
+from archive_download_service.settings import TEST_FILES_DIR_PATH
 
 
 def get_path_of_file(filename: str) -> str:
-    dir_path = ""
-    if DEBUG:
-        dir_path = "archive_download_service/test_photos"
     return os.path.join(
-            os.getcwd(),
-            dir_path,
-            filename,
-        )
+        os.getcwd(),
+        TEST_FILES_DIR_PATH,
+        filename,
+    )
 
 
 def get_filename_from_request(

@@ -2,6 +2,7 @@ import os
 from typing import NoReturn, Union
 
 from aiohttp import web, web_exceptions
+from archive_download_service.settings import ARCHIVE_URL_KEY_NAME
 
 from archive_download_service.utils.file_paths import (
     get_filename_from_request, get_path_of_file)
@@ -17,7 +18,7 @@ async def archive(
 ) -> Union[web.StreamResponse, NoReturn]:
     output_filename = get_filename_from_request(
             request,
-            request_keyword="archive_hash",
+            request_keyword=ARCHIVE_URL_KEY_NAME,
         )
     input_dir = get_path_of_file(output_filename)
     if not os.path.exists(input_dir):
@@ -42,8 +43,7 @@ async def archive(
 async def handle_index_page(
         request: web.Request
 ) -> Union[web.Response, NoReturn]:
-    index_file_path = "./archive_download_service/static/index.html"
-    index_content = await read_static_file(index_file_path)
+    index_content = await read_static_file("index.html")
     if index_content:
         return web.Response(
                 text=index_content,
@@ -55,8 +55,7 @@ async def handle_index_page(
 async def handle_archive_not_found(
         request: web.Request
 ) -> Union[web.Response, NoReturn]:
-    not_found_file_path = "./archive_download_service/static/404.html"
-    page_404_content = await read_static_file(not_found_file_path)
+    page_404_content = await read_static_file("404.html")
     if page_404_content:
         return web.Response(
                 status=404,
