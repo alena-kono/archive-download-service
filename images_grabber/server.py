@@ -56,5 +56,6 @@ if __name__ == "__main__":
     app.add_routes([
         web.get("/", handle_index_page),
         web.get("/archive/{archive_hash}/", archive),
+        web.get("/archive/{archive_hash}", archive),
     ])
     web.run_app(app)
