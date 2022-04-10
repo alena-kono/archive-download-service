@@ -1,10 +1,12 @@
+import asyncio
 import os
 from typing import NoReturn, Union
 
 import loguru
 from aiohttp import web, web_exceptions
-from archive_download_service.settings import ARCHIVE_CHUNK_SIZE_KB, ARCHIVE_URL_KEY_NAME
 
+from archive_download_service.settings import (ARCHIVE_CHUNK_SIZE_KB,
+                                               ARCHIVE_URL_KEY_NAME)
 from archive_download_service.utils.file_paths import (
     get_filename_from_request, get_path_of_file)
 from archive_download_service.utils.request_headers import \
@@ -25,27 +27,31 @@ async def archive(
     if not os.path.exists(input_dir):
         return await handle_archive_not_found(request)
 
-    # Launch zip util that archives files
-    process = await create_zip_util_process(input_dir)
-    if process.stdout is not None:
-        # Streaming response
-        response = web.StreamResponse(
-                headers=get_headers_for_zip_file(output_filename),
-            )
-        await response.prepare(request)
-
-        while not process.stdout.at_eof():
-            file_content = await process.stdout.read(
-                    n=ARCHIVE_CHUNK_SIZE_KB * 1000
-                )
-            loguru.logger.info("Sending archive chunk")
-            await response.write(file_content)
+    headers = get_headers_for_zip_file(output_filename)
+    response = web.StreamResponse(headers=headers)
+    chunk_size_b = ARCHIVE_CHUNK_SIZE_KB * 1000
+    try:
+        while True:
+            process = await create_zip_util_process(input_dir)
+            if process.stdout is not None:
+                while not process.stdout.at_eof():
+                    file_content = await process.stdout.read(chunk_size_b)
+                    await response.prepare(request)
+                    await response.write(file_content)
+                loguru.logger.success("Download completed")
+                return response
+    except asyncio.CancelledError:
+        loguru.logger.warning("Download was cancelled by user")
+    except BaseException as e:
+        loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
+        loguru.logger.error("Download was cancelled due to error")
+    finally:
+        process.kill()
         return response
-    return await handle_archive_not_found(request)
 
 
 async def handle_index_page(
-        request: web.Request
+        request: web.Request,
 ) -> Union[web.Response, NoReturn]:
     index_content = await read_static_file("index.html")
     if index_content:
@@ -57,7 +63,7 @@ async def handle_index_page(
 
 
 async def handle_archive_not_found(
-        request: web.Request
+        request: web.Request,
 ) -> Union[web.Response, NoReturn]:
     page_404_content = await read_static_file("404.html")
     if page_404_content:
