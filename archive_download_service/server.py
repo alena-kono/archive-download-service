@@ -40,13 +40,13 @@ async def archive(
                     file_content = await process.stdout.read(chunk_size_b)
                     await response.prepare(request)
                     await response.write(file_content)
-                loguru.logger.success("Download completed")
+                loguru.logger.success("Complete download")
                 return response
     except asyncio.CancelledError:
-        loguru.logger.warning("Download was cancelled by user")
+        loguru.logger.warning("Cancel download (reason=user)")
     except BaseException as e:
         loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
-        loguru.logger.error("Download was cancelled due to error")
+        loguru.logger.error("Interrupt download (reason=error)")
     finally:
         kill_process_tree(parent_pid)
         return response
