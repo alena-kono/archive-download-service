@@ -43,13 +43,12 @@ async def archive(
                 loguru.logger.success("Download completed")
                 return response
     except asyncio.CancelledError:
-        kill_process_tree(parent_pid)
         loguru.logger.warning("Download was cancelled by user")
     except BaseException as e:
-        kill_process_tree(parent_pid)
         loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
         loguru.logger.error("Download was cancelled due to error")
     finally:
+        kill_process_tree(parent_pid)
         return response
 
 
