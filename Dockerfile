@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir -p /app/archive_download_service
 
 COPY /archive_download_service /app/archive_download_service
-COPY pyproject.toml /app
+COPY pyproject.toml poetry.lock /app
 
 WORKDIR /app
 ENV PYTHONPATH=${PYTHONPATH}:${PWD}
