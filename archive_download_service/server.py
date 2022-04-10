@@ -9,6 +9,7 @@ from archive_download_service.settings import (ARCHIVE_CHUNK_SIZE_KB,
                                                ARCHIVE_URL_KEY_NAME)
 from archive_download_service.utils.file_paths import (
     get_filename_from_request, get_path_of_file)
+from archive_download_service.utils.process import kill_process_tree
 from archive_download_service.utils.request_headers import \
     get_headers_for_zip_file
 from archive_download_service.utils.static import read_static_file
@@ -33,6 +34,7 @@ async def archive(
     try:
         while True:
             process = await create_zip_util_process(input_dir)
+            parent_pid = process.pid
             if process.stdout is not None:
                 while not process.stdout.at_eof():
                     file_content = await process.stdout.read(chunk_size_b)
@@ -41,12 +43,13 @@ async def archive(
                 loguru.logger.success("Download completed")
                 return response
     except asyncio.CancelledError:
+        kill_process_tree(parent_pid)
         loguru.logger.warning("Download was cancelled by user")
     except BaseException as e:
+        kill_process_tree(parent_pid)
         loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
         loguru.logger.error("Download was cancelled due to error")
     finally:
-        process.kill()
         return response
 
 
