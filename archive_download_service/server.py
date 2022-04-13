@@ -30,7 +30,7 @@ async def archive(
 
     headers = get_headers_for_zip_file(output_filename)
     response = web.StreamResponse(headers=headers)
-    chunk_size_b = ARCHIVE_CHUNK_SIZE_KB * 1000
+    chunk_size_b = int(ARCHIVE_CHUNK_SIZE_KB * 1000)
     try:
         while True:
             process = await create_zip_util_process(input_dir)
