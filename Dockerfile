@@ -20,4 +20,4 @@ RUN poetry install --no-dev
 
 EXPOSE 8080
 
-CMD ["poetry", "run", "python", "-m", "archive_download_service.server"]
+CMD ["poetry", "run", "archive-service"]

@@ -77,7 +77,7 @@ async def handle_archive_not_found(
     raise web_exceptions.HTTPNotFound()
 
 
-if __name__ == "__main__":
+def main() -> None:
     app = web.Application()
     app.add_routes([
         web.get("/", handle_index_page),
