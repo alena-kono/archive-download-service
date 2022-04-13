@@ -2,11 +2,14 @@ import asyncio
 import os
 from typing import NoReturn, Union
 
+import dotenv
 import loguru
 from aiohttp import web, web_exceptions
 
 from archive_download_service.settings import (ARCHIVE_CHUNK_SIZE_KB,
-                                               ARCHIVE_URL_KEY_NAME)
+                                               ARCHIVE_URL_KEY_NAME,
+                                               DEFAULT_DELAY_SECS,
+                                               DEFAULT_ENV_PATH)
 from archive_download_service.utils.file_paths import (
     get_filename_from_request, get_path_of_file)
 from archive_download_service.utils.process import kill_process_tree
@@ -31,6 +34,10 @@ async def archive(
     headers = get_headers_for_zip_file(output_filename)
     response = web.StreamResponse(headers=headers)
     chunk_size_b = int(ARCHIVE_CHUNK_SIZE_KB * 1000)
+    delay_secs = dotenv.get_key(
+            DEFAULT_ENV_PATH,
+            "delay"
+        ) or DEFAULT_DELAY_SECS
     try:
         while True:
             process = await create_zip_util_process(input_dir)
@@ -40,6 +47,8 @@ async def archive(
                     file_content = await process.stdout.read(chunk_size_b)
                     await response.prepare(request)
                     await response.write(file_content)
+                    if delay_secs:
+                        await asyncio.sleep(float(delay_secs))
                 loguru.logger.success("Complete download")
                 return response
     except asyncio.CancelledError:
@@ -77,7 +86,10 @@ async def handle_archive_not_found(
     raise web_exceptions.HTTPNotFound()
 
 
-def main() -> None:
+def run_server() -> None:
+    logging_enabled = dotenv.get_key(DEFAULT_ENV_PATH, "logging") or False
+    if not logging_enabled:
+        loguru.logger.remove()
     app = web.Application()
     app.add_routes([
         web.get("/", handle_index_page),

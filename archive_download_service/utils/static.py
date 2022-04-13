@@ -1,4 +1,5 @@
 from typing import Optional
+
 import aiofiles
 
 from archive_download_service.settings import STATIC_DIR_PATH

@@ -1,7 +1,8 @@
-# Developer mode settings
-STATIC_DIR_PATH = "archive_download_service/static"
-TEST_FILES_DIR_PATH = "archive_download_service/test_photos"
+from typing import Union
 
-ARCHIVE_URL_KEY_NAME = "archive_hash"
-
-ARCHIVE_CHUNK_SIZE_KB = 200
+ARCHIVE_CHUNK_SIZE_KB: int = 200
+ARCHIVE_URL_KEY_NAME: str = "archive_hash"
+DEFAULT_DELAY_SECS: Union[int, float] = 0.0
+DEFAULT_ENV_PATH = ".env"
+DEFAULT_FILES_DIR_PATH: str = "archive_download_service/test_photos"
+STATIC_DIR_PATH: str = "archive_download_service/static"
