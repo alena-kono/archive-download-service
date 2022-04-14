@@ -6,9 +6,6 @@ Simple microservice that creates .zip archives on the fly at the request of the 
 ## Purpose of this project
 This project is an educational one to get familiar with async Python and `aiohttp`.
 
-## Demo
-![Demo](demo.gif)
-
 ## Requirements
 `docker`, `docker compose` should be installed and set up on your machine.
 
@@ -16,38 +13,38 @@ This project is an educational one to get familiar with async Python and `aiohtt
 
 1. Clone the repo and change the working directory:
 
-    $ cd archive-download-service/
+        $ cd archive-download-service/
 
 2. Build app:
 
-    $ docker compose build
+        $ docker compose build
 
 3. Run app:
 
-    $ docker compose run archive-d-service
+        $ docker compose run archive-d-service
 
 4. Archive-download-service is a CLI app. Use `--help` flag to get familiar with the its interface:
 
-    $ docker compose run archive-d-service --help
+        $ docker compose run archive-d-service --help
 
 ## Installation and running within poetry environment
 
 1. Clone the repo and change the working directory:
 
-    $ cd archive-download-service/
+        $ cd archive-download-service/
 
 2. Install main dependencies via poetry:
 
-    $ poetry install --no-dev
+        $ poetry install --no-dev
 
-**2.1 Optional. Install all the dependencies if you want to develop.**
+    *2.1 Optional. Install all the dependencies if you want to develop:*
 
-    $ poetry install
+        $ poetry install
 
 3. Run app:
 
-    $ poetry run archive-d-service
+        $ poetry run archive-d-service
 
 4. Archive-download-service is a CLI app. Use `--help` flag to get familiar with the its interface:
 
-    $ poetry run archive-d-service --help
+        $ poetry run archive-d-service --help
