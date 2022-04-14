@@ -20,4 +20,4 @@ RUN poetry install --no-dev
 
 EXPOSE 8080
 
-CMD ["poetry", "run", "archive-service"]
+ENTRYPOINT ["poetry", "run", "archive-d-service"]
