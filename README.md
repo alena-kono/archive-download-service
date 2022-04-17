@@ -14,6 +14,8 @@ For example, to download zip archive using `curl`:
 
     $ curl http://localhost:8080/archive/{archive_name} --output {archive_name}.zip
 
+Also service is accessible via web-interface.
+
 ## CLI
 Archive-download-service has the CLI that allows to:
 - enable logging;
