@@ -23,6 +23,7 @@ from archive_download_service.utils.zip_launcher import \
 async def archive(
         request: web.Request
 ) -> Union[web.StreamResponse, NoReturn]:
+    loguru.logger.info("{0}".format(request))
     output_filename = get_filename_from_request(
             request,
             request_keyword=ARCHIVE_URL_KEY_NAME,
@@ -52,7 +53,7 @@ async def archive(
                 loguru.logger.success("Complete download")
                 return response
     except asyncio.CancelledError:
-        loguru.logger.warning("Cancel download (reason=user)")
+        loguru.logger.info("Cancel download (reason=user)")
     except BaseException as e:
         loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
         loguru.logger.error("Interrupt download (reason=error)")
