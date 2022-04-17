@@ -9,7 +9,8 @@ from archive_download_service.settings import (DEFAULT_DELAY_SECS,
 
 def create_cli_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-            description="Microservice",
+            description="Simple microservice that creates .zip archives \
+on the fly at the request of the user.",
             exit_on_error=False,
         )
     parser.add_argument(
