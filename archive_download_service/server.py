@@ -22,13 +22,14 @@ async def archive(
         request: web.Request,
 ) -> Union[web.StreamResponse, NoReturn]:
     loguru.logger.info("{0}".format(request))
-
+ 
     requested_dir_full_path: str = ""
     requested_dir_name = request.match_info.get(ARCHIVE_URL_KEY_NAME)
     if requested_dir_name:
         requested_dir_full_path = get_dir_full_path(requested_dir_name)
     if not os.path.exists(requested_dir_full_path) or not requested_dir_name:
         return await handle_archive_not_found(request)
+
     headers = get_headers_for_zip_file(requested_dir_name)
     response = web.StreamResponse(headers=headers)
     chunk_size_b = int(ARCHIVE_CHUNK_SIZE_KB * 1000)
@@ -88,12 +89,11 @@ def run_server(
 ) -> None:
     if not logging_enabled:
         loguru.logger.remove()
-    app = web.Application()
+    app = web.Application(middlewares=[web.normalize_path_middleware()])
     app["path"] = path
     app["delay"] = delay_secs
     app.add_routes([
         web.get("/", handle_index_page),
         web.get("/archive/{archive_hash}/", archive),
-        web.get("/archive/{archive_hash}", archive),
     ])
     web.run_app(app)
