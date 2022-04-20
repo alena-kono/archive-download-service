@@ -1,5 +1,5 @@
 import argparse
-from typing import Dict, Optional
+from typing import Any, Dict, NoReturn, Union
 
 from archive_download_service.cli.validators import (validate_delay,
                                                      validate_path)
@@ -44,10 +44,5 @@ on the fly at the request of the user.",
 
 def parse_cli_args(
         parser: argparse.ArgumentParser,
-) -> Optional[Dict[str, str]]:
-    try:
-        args = parser.parse_args()
-    except argparse.ArgumentError as e:
-        print(e)
-        raise SystemExit
-    return args.__dict__
+) -> Union[Dict[str, Any], NoReturn]:
+    return parser.parse_args().__dict__

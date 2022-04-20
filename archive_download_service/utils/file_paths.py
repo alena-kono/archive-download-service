@@ -1,14 +1,11 @@
 import os
 
-import dotenv
 from aiohttp import web
 
-from archive_download_service.settings import (DEFAULT_ENV_PATH,
-                                               DEFAULT_FILES_DIR_PATH)
+from archive_download_service.settings import DEFAULT_FILES_DIR_PATH
 
 
-def get_path_of_file(filename: str) -> str:
-    files_dir_path = dotenv.get_key(DEFAULT_ENV_PATH, "path")
+def get_path_of_file(filename: str, files_dir_path: str) -> str:
     return os.path.join(
         os.getcwd(),
         files_dir_path or DEFAULT_FILES_DIR_PATH,
