@@ -9,8 +9,7 @@ from archive_download_service.settings import (ARCHIVE_CHUNK_SIZE_KB,
                                                ARCHIVE_URL_KEY_NAME,
                                                DEFAULT_DELAY_SECS,
                                                DEFAULT_FILES_DIR_PATH)
-from archive_download_service.utils.file_paths import (
-    get_filename_from_request, get_path_of_file)
+from archive_download_service.utils.file_paths import get_dir_full_path
 from archive_download_service.utils.process import kill_process_tree
 from archive_download_service.utils.request_headers import \
     get_headers_for_zip_file
@@ -23,23 +22,19 @@ async def archive(
         request: web.Request,
 ) -> Union[web.StreamResponse, NoReturn]:
     loguru.logger.info("{0}".format(request))
-    output_filename = get_filename_from_request(
-            request,
-            request_keyword=ARCHIVE_URL_KEY_NAME,
-        )
-    input_dir = get_path_of_file(
-            filename=output_filename,
-            files_dir_path=request.app.get("path", DEFAULT_FILES_DIR_PATH),
-            )
-    if not os.path.exists(input_dir):
-        return await handle_archive_not_found(request)
 
-    headers = get_headers_for_zip_file(output_filename)
+    requested_dir_full_path: str = ""
+    requested_dir_name = request.match_info.get(ARCHIVE_URL_KEY_NAME)
+    if requested_dir_name:
+        requested_dir_full_path = get_dir_full_path(requested_dir_name)
+    if not os.path.exists(requested_dir_full_path) or not requested_dir_name:
+        return await handle_archive_not_found(request)
+    headers = get_headers_for_zip_file(requested_dir_name)
     response = web.StreamResponse(headers=headers)
     chunk_size_b = int(ARCHIVE_CHUNK_SIZE_KB * 1000)
     try:
         while True:
-            process = await create_zip_util_process(input_dir)
+            process = await create_zip_util_process(requested_dir_full_path)
             parent_pid = process.pid
             if process.stdout is not None:
                 while not process.stdout.at_eof():
