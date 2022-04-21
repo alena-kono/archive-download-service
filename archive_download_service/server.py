@@ -10,19 +10,18 @@ from archive_download_service.settings import (ARCHIVE_CHUNK_SIZE_KB,
                                                DEFAULT_DELAY_SECS,
                                                DEFAULT_FILES_DIR_PATH)
 from archive_download_service.utils.file_paths import get_dir_full_path
-from archive_download_service.utils.process import kill_process_tree
 from archive_download_service.utils.request_headers import \
     get_headers_for_zip_file
 from archive_download_service.utils.static import read_static_file
 from archive_download_service.utils.zip_launcher import \
-        create_zip_util_process
+    create_zip_util_process
 
 
 async def archive(
         request: web.Request,
 ) -> Union[web.StreamResponse, NoReturn]:
     loguru.logger.info("{0}".format(request))
- 
+
     requested_dir_full_path: str = ""
     requested_dir_name = request.match_info.get(ARCHIVE_URL_KEY_NAME)
     if requested_dir_name:
@@ -33,27 +32,29 @@ async def archive(
     headers = get_headers_for_zip_file(requested_dir_name)
     response = web.StreamResponse(headers=headers)
     chunk_size_b = int(ARCHIVE_CHUNK_SIZE_KB * 1000)
+
+    process = await create_zip_util_process(requested_dir_full_path)
     try:
-        while True:
-            process = await create_zip_util_process(requested_dir_full_path)
-            parent_pid = process.pid
-            if process.stdout is not None:
-                while not process.stdout.at_eof():
-                    file_content = await process.stdout.read(chunk_size_b)
-                    await response.prepare(request)
-                    await response.write(file_content)
-                    delay_secs = request.app.get("delay")
-                    if delay_secs:
-                        await asyncio.sleep(float(delay_secs))
-                loguru.logger.success("Complete download")
-                return response
+        while True and process.stdout is not None:
+            while not process.stdout.at_eof():
+                file_content = await process.stdout.read(chunk_size_b)
+                await response.prepare(request)
+                await response.write(file_content)
+                delay_secs = request.app.get("delay")
+                if delay_secs:
+                    await asyncio.sleep(float(delay_secs))
+            loguru.logger.success("Complete download")
+            break
     except asyncio.CancelledError:
         loguru.logger.info("Cancel download (reason=user)")
+        raise
     except BaseException as e:
         loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
         loguru.logger.error("Interrupt download (reason=error)")
+        raise
     finally:
-        kill_process_tree(parent_pid)
+        await process.communicate()
+        loguru.logger.info("Stop process(pid={0})".format(process.pid))
         return response
 
 
