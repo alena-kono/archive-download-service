@@ -53,11 +53,11 @@ optional arguments:
 
 3. Run app:
 
-        $ docker compose run archive-d-service
+        $ docker compose run -p 8080:8080 archive-d-service
 
 4. Use `--help` flag to get familiar with the CLI interface:
 
-        $ docker compose run archive-d-service --help
+        $ docker compose run -p 8080:8080 archive-d-service --help
 
 ## Installation and running within poetry environment
 ### Requirements
