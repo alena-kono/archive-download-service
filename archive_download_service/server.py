@@ -2,17 +2,14 @@ import asyncio
 import os
 from typing import NoReturn, Union
 
-import dotenv
 import loguru
 from aiohttp import web, web_exceptions
 
 from archive_download_service.settings import (ARCHIVE_CHUNK_SIZE_KB,
                                                ARCHIVE_URL_KEY_NAME,
                                                DEFAULT_DELAY_SECS,
-                                               DEFAULT_ENV_PATH)
-from archive_download_service.utils.file_paths import (
-    get_filename_from_request, get_path_of_file)
-from archive_download_service.utils.process import kill_process_tree
+                                               DEFAULT_FILES_DIR_PATH)
+from archive_download_service.utils.file_paths import get_dir_full_path
 from archive_download_service.utils.request_headers import \
     get_headers_for_zip_file
 from archive_download_service.utils.static import read_static_file
@@ -21,44 +18,43 @@ from archive_download_service.utils.zip_launcher import \
 
 
 async def archive(
-        request: web.Request
+        request: web.Request,
 ) -> Union[web.StreamResponse, NoReturn]:
     loguru.logger.info("{0}".format(request))
-    output_filename = get_filename_from_request(
-            request,
-            request_keyword=ARCHIVE_URL_KEY_NAME,
-        )
-    input_dir = get_path_of_file(output_filename)
-    if not os.path.exists(input_dir):
+
+    requested_dir_full_path: str = ""
+    requested_dir_name = request.match_info.get(ARCHIVE_URL_KEY_NAME)
+    if requested_dir_name:
+        requested_dir_full_path = get_dir_full_path(requested_dir_name)
+    if not os.path.exists(requested_dir_full_path) or not requested_dir_name:
         return await handle_archive_not_found(request)
 
-    headers = get_headers_for_zip_file(output_filename)
+    headers = get_headers_for_zip_file(requested_dir_name)
     response = web.StreamResponse(headers=headers)
     chunk_size_b = int(ARCHIVE_CHUNK_SIZE_KB * 1000)
-    delay_secs = dotenv.get_key(
-            DEFAULT_ENV_PATH,
-            "delay"
-        ) or DEFAULT_DELAY_SECS
+
+    process = await create_zip_util_process(requested_dir_full_path)
     try:
-        while True:
-            process = await create_zip_util_process(input_dir)
-            parent_pid = process.pid
-            if process.stdout is not None:
-                while not process.stdout.at_eof():
-                    file_content = await process.stdout.read(chunk_size_b)
-                    await response.prepare(request)
-                    await response.write(file_content)
-                    if delay_secs:
-                        await asyncio.sleep(float(delay_secs))
-                loguru.logger.success("Complete download")
-                return response
+        while True and process.stdout is not None:
+            while not process.stdout.at_eof():
+                file_content = await process.stdout.read(chunk_size_b)
+                await response.prepare(request)
+                await response.write(file_content)
+                delay_secs = request.app.get("delay")
+                if delay_secs:
+                    await asyncio.sleep(float(delay_secs))
+            loguru.logger.success("Complete download")
+            break
     except asyncio.CancelledError:
         loguru.logger.info("Cancel download (reason=user)")
+        raise
     except BaseException as e:
         loguru.logger.error("{0}, args{1}".format(e.__class__, e.args))
         loguru.logger.error("Interrupt download (reason=error)")
+        raise
     finally:
-        kill_process_tree(parent_pid)
+        await process.communicate()
+        loguru.logger.info("Stop process(pid={0})".format(process.pid))
         return response
 
 
@@ -87,14 +83,18 @@ async def handle_archive_not_found(
     raise web_exceptions.HTTPNotFound()
 
 
-def run_server() -> None:
-    logging_enabled = dotenv.get_key(DEFAULT_ENV_PATH, "logging") or False
+def run_server(
+        path: str = DEFAULT_FILES_DIR_PATH,
+        logging_enabled: bool = False,
+        delay_secs: float = DEFAULT_DELAY_SECS,
+) -> None:
     if not logging_enabled:
         loguru.logger.remove()
-    app = web.Application()
+    app = web.Application(middlewares=[web.normalize_path_middleware()])
+    app["path"] = path
+    app["delay"] = delay_secs
     app.add_routes([
         web.get("/", handle_index_page),
         web.get("/archive/{archive_hash}/", archive),
-        web.get("/archive/{archive_hash}", archive),
     ])
     web.run_app(app)
